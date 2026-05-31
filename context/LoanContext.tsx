@@ -170,26 +170,43 @@ export function LoanProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const markAsPaid = useCallback(async (loanId: string) => {
-    await updateLoanStatus(loanId, 'Paid');
-    dispatch({ type: 'UPDATE_STATUS', loanId, status: 'Paid' });
-    // Cancel pending notifications for this loan
-    await cancelNotificationsForLoan(loanId);
+    const loan = state.loans.find((l) => l.id === loanId);
+    if (!loan) return;
 
     // Save payment record
-    const loan = state.loans.find((l) => l.id === loanId);
-    if (loan) {
-      const now = new Date();
-      const payment: Payment = {
-        id: `${loanId}_${Date.now()}`,
-        loanId,
-        paidAt: now.toISOString(),
-        amount: loan.emiAmount,
-        month: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`,
-      };
-      await savePayment(payment);
-      dispatch({ type: 'ADD_PAYMENT', payment });
+    const now = new Date();
+    const payment: Payment = {
+      id: `${loanId}_${Date.now()}`,
+      loanId,
+      paidAt: now.toISOString(),
+      amount: loan.emiAmount,
+      month: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`,
+    };
+    await savePayment(payment);
+    dispatch({ type: 'ADD_PAYMENT', payment });
+
+    // Check if fully paid based on totalDues
+    const existingPayments = state.payments[loanId] || [];
+    const totalPaymentsMade = existingPayments.length + 1;
+
+    if (totalPaymentsMade >= loan.totalDues) {
+      // Loan fully paid
+      await updateLoanStatus(loanId, 'Paid');
+      dispatch({ type: 'UPDATE_STATUS', loanId, status: 'Paid' });
+      await cancelNotificationsForLoan(loanId);
+    } else {
+      // Advance due date by 1 month
+      const [year, month, day] = loan.dueDate.split('-').map(Number);
+      // JS Date month is 0-indexed. Passing 'month' advances it by 1 month
+      const nextDueDate = new Date(year, month, day);
+      const nextDueDateStr = nextDueDate.toISOString().split('T')[0];
+      
+      const updatedLoan = { ...loan, dueDate: nextDueDateStr, status: 'Pending' as const };
+      await saveLoan(updatedLoan);
+      dispatch({ type: 'UPDATE_LOAN', loan: updatedLoan });
+      await rescheduleNotificationsForLoan(updatedLoan, state.notificationSettings);
     }
-  }, [state.loans]);
+  }, [state.loans, state.payments, state.notificationSettings]);
 
   const loadPaymentsForLoan = useCallback(async (loanId: string) => {
     const payments = await getPaymentsForLoan(loanId);

@@ -2,43 +2,43 @@
 
 export const Colors = {
   // Backgrounds
-  bg: '#0F0F1A',
-  bgCard: '#1A1A2E',
-  bgCard2: '#16213E',
-  bgInput: '#0D0D20',
-  bgModal: '#1E1E35',
+  bg: '#05050A',
+  bgCard: '#1A1A27',
+  bgCard2: '#222236',
+  bgInput: '#101018',
+  bgModal: '#1C1C2A',
 
   // Accent
-  primary: '#6C63FF',
-  primaryLight: '#8B85FF',
-  primaryDark: '#4F46E5',
-  primaryAlpha: 'rgba(108, 99, 255, 0.15)',
+  primary: '#7B61FF',
+  primaryLight: '#B3A6FF',
+  primaryDark: '#5635FF',
+  primaryAlpha: 'rgba(123, 97, 255, 0.2)',
 
   // Status
-  success: '#22C55E',
-  successAlpha: 'rgba(34, 197, 94, 0.15)',
-  warning: '#F59E0B',
-  warningAlpha: 'rgba(245, 158, 11, 0.15)',
-  danger: '#EF4444',
-  dangerAlpha: 'rgba(239, 68, 68, 0.15)',
+  success: '#00FFA3',
+  successAlpha: 'rgba(0, 255, 163, 0.15)',
+  warning: '#FFB800',
+  warningAlpha: 'rgba(255, 184, 0, 0.15)',
+  danger: '#FF3366',
+  dangerAlpha: 'rgba(255, 51, 102, 0.15)',
 
   // Text
-  textPrimary: '#F0EFFB',
-  textSecondary: '#9A99B2',
-  textMuted: '#5C5B75',
-  textInverse: '#0F0F1A',
+  textPrimary: '#FFFFFF',
+  textSecondary: '#C5C5D6',
+  textMuted: '#8E8EA8',
+  textInverse: '#05050A',
 
   // Borders
-  border: 'rgba(255, 255, 255, 0.08)',
+  border: 'rgba(255, 255, 255, 0.06)',
   borderStrong: 'rgba(255, 255, 255, 0.15)',
 
-  // Loan type colors
-  loanHome: '#3B82F6',
-  loanBike: '#10B981',
-  loanCar: '#8B5CF6',
-  loanPersonal: '#F59E0B',
-  loanEducation: '#EC4899',
-  loanOther: '#6B7280',
+  // Loan type colors (Vibrant)
+  loanHome: '#33D4FF',
+  loanBike: '#00FFA3',
+  loanCar: '#A855F7',
+  loanPersonal: '#FFB800',
+  loanEducation: '#FF3366',
+  loanOther: '#9CA3AF',
 };
 
 export const Spacing = {

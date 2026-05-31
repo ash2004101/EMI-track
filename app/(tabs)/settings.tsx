@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import * as Notifications from 'expo-notifications';
 import {
   View,
   Text,
@@ -127,6 +128,21 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleTestNotification = async () => {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: '🔔 Test Notification',
+        body: 'This is what your EMI reminders will look like!',
+        sound: 'default',
+      },
+      trigger: {
+        seconds: 3,
+        channelId: 'emi-reminders',
+      },
+    });
+    Alert.alert('Testing', 'A test notification will appear in 3 seconds! Minimize the app to see the heads-up banner.');
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Status Banner */}
@@ -198,6 +214,16 @@ export default function SettingsScreen() {
         <Text style={styles.saveBtnText}>
           {saving ? 'Rescheduling...' : 'Save & Reschedule'}
         </Text>
+      </TouchableOpacity>
+
+      {/* Test Button */}
+      <TouchableOpacity
+        style={styles.testBtn}
+        onPress={handleTestNotification}
+        activeOpacity={0.8}
+      >
+        <MaterialIcons name="notifications-active" size={20} color={Colors.primary} />
+        <Text style={styles.testBtnText}>Send Test Notification</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -350,5 +376,22 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     fontWeight: FontWeight.bold,
     color: Colors.textInverse,
+  },
+  testBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.primaryAlpha,
+    borderRadius: Radius.lg,
+    padding: Spacing.md,
+    marginTop: Spacing.md,
+    gap: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.primary + '44',
+  },
+  testBtnText: {
+    fontSize: FontSize.md,
+    fontWeight: FontWeight.bold,
+    color: Colors.primary,
   },
 });

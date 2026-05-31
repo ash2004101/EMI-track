@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -128,7 +128,7 @@ export default function LoanDetailScreen() {
 
         <View style={styles.heroAmount}>
           <Text style={styles.emiLabel}>Monthly EMI</Text>
-          <Text style={styles.emiAmount}>₹{amountStr}</Text>
+          <Text style={styles.emiAmount} adjustsFontSizeToFit numberOfLines={1}>₹{amountStr}</Text>
         </View>
 
         {/* Due Date Row */}
@@ -176,6 +176,27 @@ export default function LoanDetailScreen() {
             </View>
           )}
         </View>
+
+        {/* Progress Bar */}
+        {loan.totalDues > 0 && (
+          <View style={styles.progressContainer}>
+            <View style={styles.progressHeader}>
+              <Text style={styles.progressText}>Progress</Text>
+              <Text style={styles.progressValue}>{loanPayments.length} of {loan.totalDues} Paid</Text>
+            </View>
+            <View style={styles.progressBarBg}>
+              <View 
+                style={[
+                  styles.progressBarFill, 
+                  { 
+                    backgroundColor: typeColor, 
+                    width: `${Math.min((loanPayments.length / loan.totalDues) * 100, 100)}%` 
+                  }
+                ]} 
+              />
+            </View>
+          </View>
+        )}
       </View>
 
       {/* Notes */}
@@ -220,8 +241,8 @@ export default function LoanDetailScreen() {
       <View style={styles.actions}>
         {loan.status !== 'Paid' && (
           <TouchableOpacity style={styles.payBtn} onPress={handleMarkPaid} activeOpacity={0.8}>
-            <MaterialIcons name="check-circle" size={20} color="#fff" />
-            <Text style={styles.payBtnText}>Mark as Paid</Text>
+            <MaterialIcons name="check-circle" size={24} color="#000" />
+            <Text style={styles.payBtnText}>Mark EMI as Paid</Text>
           </TouchableOpacity>
         )}
         <View style={styles.secondaryActions}>
@@ -361,17 +382,22 @@ const styles = StyleSheet.create({
   infoLabel: { fontSize: FontSize.xs, color: Colors.textMuted, marginBottom: 4 },
   infoValue: { fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: Colors.textPrimary },
 
-  actions: { gap: Spacing.sm, marginBottom: Spacing.lg },
+  actions: { gap: Spacing.md, marginBottom: Spacing.xl },
   payBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.success,
     borderRadius: Radius.lg,
-    padding: Spacing.md,
+    padding: Spacing.md + 4,
     gap: Spacing.sm,
+    shadowColor: Colors.success,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8,
   },
-  payBtnText: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: '#fff' },
+  payBtnText: { fontSize: FontSize.lg, fontWeight: FontWeight.extrabold, color: '#000' },
   secondaryActions: { flexDirection: 'row', gap: Spacing.sm },
   editBtn: {
     flex: 1,
@@ -417,4 +443,32 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   noHistoryText: { fontSize: FontSize.md, color: Colors.textMuted },
+  progressContainer: {
+    marginTop: Spacing.lg,
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
+  },
+  progressText: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.medium,
+    color: Colors.textMuted,
+  },
+  progressValue: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.bold,
+    color: Colors.textPrimary,
+  },
+  progressBarBg: {
+    height: 8,
+    backgroundColor: Colors.bgInput,
+    borderRadius: Radius.full,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: Radius.full,
+  },
 });

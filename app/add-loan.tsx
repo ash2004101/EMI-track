@@ -12,10 +12,8 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLoanContext } from '../context/LoanContext';
 import FormField from '../components/FormField';
-import { Colors, FontSize, FontWeight, Radius, Spacing, LoanTypeColors, LoanTypeIcons } from '../constants/theme';
-import { Loan, LoanType } from '../types';
-
-const LOAN_TYPES: LoanType[] = ['Home', 'Bike', 'Car', 'Personal', 'Education', 'Other'];
+import { Colors, FontSize, FontWeight, Radius, Spacing } from '../constants/theme';
+import { Loan } from '../types';
 
 function generateId(): string {
   return `loan_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -44,8 +42,9 @@ export default function AddLoanScreen() {
   const { addLoan } = useLoanContext();
 
   const [name, setName] = useState('');
-  const [type, setType] = useState<LoanType>('Personal');
+  const [type, setType] = useState('');
   const [emiAmount, setEmiAmount] = useState('');
+  const [totalDues, setTotalDues] = useState('');
   const [dueDateInput, setDueDateInput] = useState('');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
@@ -54,10 +53,17 @@ export default function AddLoanScreen() {
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
     if (!name.trim()) errs.name = 'Loan name is required';
+    if (!type.trim()) errs.type = 'Loan type is required';
+    
     if (!emiAmount.trim()) {
       errs.emiAmount = 'EMI amount is required';
     } else if (isNaN(Number(emiAmount)) || Number(emiAmount) <= 0) {
       errs.emiAmount = 'Enter a valid numeric amount';
+    }
+    if (!totalDues.trim()) {
+      errs.totalDues = 'Total EMIs required';
+    } else if (isNaN(Number(totalDues)) || Number(totalDues) <= 0 || !Number.isInteger(Number(totalDues))) {
+      errs.totalDues = 'Enter a valid number of months';
     }
     if (!dueDateInput.trim()) {
       errs.dueDate = 'Due date is required';
@@ -74,11 +80,13 @@ export default function AddLoanScreen() {
     setSaving(true);
     try {
       const parsedDate = parseDateInput(dueDateInput);
+      
       const loan: Loan = {
         id: generateId(),
         name: name.trim(),
-        type,
+        type: type.trim(),
         emiAmount: parseFloat(emiAmount),
+        totalDues: parseInt(totalDues, 10),
         dueDate: parsedDate,
         notes: notes.trim() || undefined,
         status: 'Pending',
@@ -103,34 +111,16 @@ export default function AddLoanScreen() {
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >
-      {/* Loan Type Selector */}
-      <Text style={styles.sectionLabel}>Loan Type</Text>
-      <View style={styles.typeGrid}>
-        {LOAN_TYPES.map((t) => {
-          const color = LoanTypeColors[t];
-          const icon = LoanTypeIcons[t];
-          const selected = type === t;
-          return (
-            <TouchableOpacity
-              key={t}
-              style={[
-                styles.typeChip,
-                { borderColor: color + (selected ? 'ff' : '44') },
-                selected && { backgroundColor: color + '22' },
-              ]}
-              onPress={() => setType(t)}
-              activeOpacity={0.7}
-            >
-              <MaterialIcons name={icon as any} size={18} color={selected ? color : Colors.textMuted} />
-              <Text style={[styles.typeChipText, { color: selected ? color : Colors.textMuted }]}>
-                {t}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
       {/* Form Fields */}
+      <FormField
+        label="Loan Type"
+        value={type}
+        onChangeText={setType}
+        placeholder="e.g. Home, Personal, Laptop"
+        icon="category"
+        required
+        error={errors.type}
+      />
       <FormField
         label="Loan Name"
         value={name}
@@ -140,6 +130,7 @@ export default function AddLoanScreen() {
         required
         error={errors.name}
       />
+
       <FormField
         label="EMI Amount (₹)"
         value={emiAmount}
@@ -149,6 +140,16 @@ export default function AddLoanScreen() {
         icon="currency-rupee"
         required
         error={errors.emiAmount}
+      />
+      <FormField
+        label="Total EMIs (Months)"
+        value={totalDues}
+        onChangeText={setTotalDues}
+        placeholder="e.g. 24"
+        keyboardType="numeric"
+        icon="date-range"
+        required
+        error={errors.totalDues}
       />
       <FormField
         label="Due Date"
@@ -206,26 +207,6 @@ const styles = StyleSheet.create({
     fontWeight: FontWeight.semibold,
     color: Colors.textSecondary,
     marginBottom: Spacing.sm,
-  },
-  typeGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-    marginBottom: Spacing.lg,
-  },
-  typeChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.full,
-    borderWidth: 1.5,
-    backgroundColor: 'transparent',
-  },
-  typeChipText: {
-    fontSize: FontSize.sm,
-    fontWeight: FontWeight.semibold,
   },
   notifPreview: {
     flexDirection: 'row',

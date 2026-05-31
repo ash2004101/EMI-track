@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
+  ScrollView,
   ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -18,10 +19,13 @@ import { Loan } from '../../types';
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const { loans, loading, refreshLoans, getUpcomingCount, getTotalMonthlyEMI } =
+  const { loans, payments, loading, refreshLoans, getUpcomingCount, getTotalMonthlyEMI } =
     useLoanContext();
 
-  const [refreshing, setRefreshing] = React.useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('All');
+
+  const filterOptions = ['All', ...new Set(loans.map(loan => loan.type))];
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -29,14 +33,16 @@ export default function DashboardScreen() {
     setRefreshing(false);
   }, [refreshLoans]);
 
-  // Sort: overdue first, then by due date ascending
-  const sortedLoans = [...loans].sort((a, b) => {
-    const statusOrder = { Overdue: 0, Pending: 1, Paid: 2 };
-    if (statusOrder[a.status] !== statusOrder[b.status]) {
-      return statusOrder[a.status] - statusOrder[b.status];
-    }
-    return a.dueDate.localeCompare(b.dueDate);
-  });
+  // Filter and Sort: overdue first, then by due date ascending
+  const sortedLoans = [...loans]
+    .filter(loan => activeFilter === 'All' || loan.type === activeFilter)
+    .sort((a, b) => {
+      const statusOrder = { Overdue: 0, Pending: 1, Paid: 2 };
+      if (statusOrder[a.status] !== statusOrder[b.status]) {
+        return statusOrder[a.status] - statusOrder[b.status];
+      }
+      return a.dueDate.localeCompare(b.dueDate);
+    });
 
   const totalMonthly = getTotalMonthlyEMI();
   const upcomingCount = getUpcomingCount();
@@ -62,18 +68,27 @@ export default function DashboardScreen() {
           value={String(loans.length)}
         />
         <SummaryCard
-          icon="event"
-          iconColor={Colors.warning}
-          label="Upcoming (7d)"
-          value={String(upcomingCount)}
-        />
-        <SummaryCard
           icon="currency-rupee"
           iconColor={Colors.success}
           label="Monthly EMI"
           value={`₹${amountStr}`}
         />
       </View>
+
+      {/* Filter Chips */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+        {filterOptions.map(option => (
+          <TouchableOpacity
+            key={option}
+            style={[styles.filterChip, activeFilter === option && styles.filterChipActive]}
+            onPress={() => setActiveFilter(option)}
+          >
+            <Text style={[styles.filterText, activeFilter === option && styles.filterTextActive]}>
+              {option}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
 
       {/* Section header */}
       <View style={styles.sectionHeader}>
@@ -109,6 +124,7 @@ export default function DashboardScreen() {
         renderItem={({ item }: { item: Loan }) => (
           <LoanCard
             loan={item}
+            paymentsCount={(payments[item.id] || []).length}
             onPress={() => router.push(`/loan/${item.id}`)}
           />
         )}
@@ -157,9 +173,36 @@ const styles = StyleSheet.create({
   },
   summaryRow: {
     flexDirection: 'row',
+    paddingHorizontal: Spacing.md,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.md,
     gap: Spacing.sm,
-    margin: Spacing.md,
-    marginBottom: Spacing.sm,
+  },
+  filterScroll: {
+    paddingHorizontal: Spacing.md,
+    paddingBottom: Spacing.md,
+    gap: Spacing.sm,
+  },
+  filterChip: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.full,
+    backgroundColor: Colors.bgCard2,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  filterChipActive: {
+    backgroundColor: Colors.primaryAlpha,
+    borderColor: Colors.primary,
+  },
+  filterText: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.medium,
+  },
+  filterTextActive: {
+    color: Colors.primaryLight,
+    fontWeight: FontWeight.bold,
   },
   sectionHeader: {
     flexDirection: 'row',
