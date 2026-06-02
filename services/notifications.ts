@@ -108,8 +108,8 @@ export async function scheduleNotificationsForLoan(
           data: { loanId: id, type: n.suffix },
         },
         trigger: {
-          date: triggerDate,
           channelId: 'emi-reminders',
+          date: triggerDate.getTime(),
         },
       });
     } catch (err) {
