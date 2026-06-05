@@ -10,9 +10,13 @@ const KEYS = {
 // ─── DEFAULT SETTINGS ───────────────────────────────────────────────────────
 export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   dayBeforeMorning: '09:00',
+  alarmDayBeforeMorning: false,
   dayBeforeAfternoon: '16:00',
+  alarmDayBeforeAfternoon: false,
   dueDateMorning: '09:00',
+  alarmDueDateMorning: false,
   dueDateEvening: '17:00',
+  alarmDueDateEvening: false,
 };
 
 // ─── LOANS ───────────────────────────────────────────────────────────────────

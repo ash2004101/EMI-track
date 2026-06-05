@@ -1,44 +1,47 @@
 // Design tokens for EMI Tracker
 
 export const Colors = {
-  // Backgrounds
-  bg: '#05050A',
-  bgCard: '#1A1A27',
-  bgCard2: '#222236',
-  bgInput: '#101018',
-  bgModal: '#1C1C2A',
+  // Deep Obsidian Backgrounds
+  bg: '#000000',
+  bgCard: '#111115',
+  bgCard2: '#18181E',
+  bgInput: '#15151A',
+  bgModal: '#0F0F13',
 
-  // Accent
-  primary: '#7B61FF',
-  primaryLight: '#B3A6FF',
-  primaryDark: '#5635FF',
-  primaryAlpha: 'rgba(123, 97, 255, 0.2)',
+  // Vibrant Neon Accents
+  primary: '#6366F1', // Electric Indigo
+  primaryLight: '#818CF8',
+  primaryDark: '#4F46E5',
+  primaryAlpha: 'rgba(99, 102, 241, 0.15)', // Glass glow
+
+  secondary: '#06B6D4', // Cyan
+  secondaryAlpha: 'rgba(6, 182, 212, 0.15)',
 
   // Status
-  success: '#00FFA3',
-  successAlpha: 'rgba(0, 255, 163, 0.15)',
-  warning: '#FFB800',
-  warningAlpha: 'rgba(255, 184, 0, 0.15)',
-  danger: '#FF3366',
-  dangerAlpha: 'rgba(255, 51, 102, 0.15)',
+  success: '#10B981', // Emerald
+  successAlpha: 'rgba(16, 185, 129, 0.15)',
+  warning: '#F59E0B', // Amber
+  warningAlpha: 'rgba(245, 158, 11, 0.15)',
+  danger: '#EF4444', // Rose
+  dangerAlpha: 'rgba(239, 68, 68, 0.15)',
 
-  // Text
+  // Crisp Text
   textPrimary: '#FFFFFF',
-  textSecondary: '#C5C5D6',
-  textMuted: '#8E8EA8',
-  textInverse: '#05050A',
+  textSecondary: '#A1A1AA',
+  textMuted: '#71717A',
+  textInverse: '#000000',
 
-  // Borders
-  border: 'rgba(255, 255, 255, 0.06)',
+  // Minimalist Borders
+  border: 'rgba(255, 255, 255, 0.08)',
   borderStrong: 'rgba(255, 255, 255, 0.15)',
 
-  // Loan type colors (Vibrant)
-  loanHome: '#33D4FF',
-  loanBike: '#00FFA3',
-  loanCar: '#A855F7',
-  loanPersonal: '#FFB800',
-  loanEducation: '#FF3366',
-  loanOther: '#9CA3AF',
+  // Categorical Neons
+  loanHome: '#06B6D4',
+  loanBike: '#10B981',
+  loanCar: '#8B5CF6',
+  loanPersonal: '#F59E0B',
+  loanEducation: '#EC4899',
+  loanOther: '#71717A',
 };
 
 export const Spacing = {

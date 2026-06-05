@@ -10,15 +10,17 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Feather } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLoanContext } from '../../context/LoanContext';
 import LoanCard from '../../components/LoanCard';
-import SummaryCard from '../../components/SummaryCard';
+import AnimatedTouchable from '../../components/AnimatedTouchable';
 import { Colors, FontSize, FontWeight, Radius, Spacing } from '../../constants/theme';
 import { Loan } from '../../types';
 
 export default function DashboardScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { loans, payments, loading, refreshLoans, getUpcomingCount, getTotalMonthlyEMI } =
     useLoanContext();
 
@@ -45,40 +47,42 @@ export default function DashboardScreen() {
     });
 
   const totalMonthly = getTotalMonthlyEMI();
-  const upcomingCount = getUpcomingCount();
   const amountStr = new Intl.NumberFormat('en-IN').format(totalMonthly);
 
   if (loading) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={styles.loadingText}>Loading loans...</Text>
+        <Text style={styles.loadingText}>Loading your wallet...</Text>
       </View>
     );
   }
 
-  const ListHeader = () => (
-    <>
-      {/* Summary Cards */}
-      <View style={styles.summaryRow}>
-        <SummaryCard
-          icon="account-balance"
-          iconColor={Colors.primary}
-          label="Total Loans"
-          value={String(loans.length)}
-        />
-        <SummaryCard
-          icon="currency-rupee"
-          iconColor={Colors.success}
-          label="Monthly EMI"
-          value={`₹${amountStr}`}
-        />
+  const WalletHeader = () => (
+    <View style={styles.walletContainer}>
+      <View style={styles.walletCard}>
+        <View style={styles.walletGlow} />
+        <View style={styles.walletTopRow}>
+          <Text style={styles.walletLabel}>TOTAL MONTHLY EMI</Text>
+          <MaterialIcons name="account-balance-wallet" size={24} color={Colors.primaryLight} />
+        </View>
+        <View style={styles.walletAmountWrap}>
+          <Text style={styles.walletAmount} adjustsFontSizeToFit numberOfLines={1}>
+            ₹ {amountStr}
+          </Text>
+        </View>
+        <View style={styles.walletBottomRow}>
+          <View style={styles.walletStat}>
+            <Text style={styles.walletStatValue}>{loans.length}</Text>
+            <Text style={styles.walletStatLabel}>Active Loans</Text>
+          </View>
+        </View>
       </View>
 
       {/* Filter Chips */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
         {filterOptions.map(option => (
-          <TouchableOpacity
+          <AnimatedTouchable
             key={option}
             style={[styles.filterChip, activeFilter === option && styles.filterChipActive]}
             onPress={() => setActiveFilter(option)}
@@ -86,30 +90,26 @@ export default function DashboardScreen() {
             <Text style={[styles.filterText, activeFilter === option && styles.filterTextActive]}>
               {option}
             </Text>
-          </TouchableOpacity>
+          </AnimatedTouchable>
         ))}
       </ScrollView>
 
-      {/* Section header */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>
           {sortedLoans.length > 0 ? 'Your Loans' : ''}
         </Text>
-        {sortedLoans.length > 0 && (
-          <Text style={styles.sectionCount}>{sortedLoans.length} loan{sortedLoans.length !== 1 ? 's' : ''}</Text>
-        )}
       </View>
-    </>
+    </View>
   );
 
   const EmptyComponent = () => (
     <View style={styles.emptyWrap}>
       <View style={styles.emptyIconWrap}>
-        <MaterialIcons name="account-balance" size={56} color={Colors.primary} />
+        <MaterialIcons name="insights" size={48} color={Colors.primary} />
       </View>
-      <Text style={styles.emptyTitle}>No Loans Yet</Text>
+      <Text style={styles.emptyTitle}>Your Wallet is Empty</Text>
       <Text style={styles.emptySubtitle}>
-        Tap the + button below to add your first loan and start tracking EMI payments.
+        Tap the floating + button to add your first EMI and start tracking your payments in style.
       </Text>
     </View>
   );
@@ -119,7 +119,7 @@ export default function DashboardScreen() {
       <FlatList
         data={sortedLoans}
         keyExtractor={(item) => item.id}
-        ListHeaderComponent={ListHeader}
+        ListHeaderComponent={WalletHeader}
         ListEmptyComponent={EmptyComponent}
         renderItem={({ item }: { item: Loan }) => (
           <LoanCard
@@ -128,7 +128,7 @@ export default function DashboardScreen() {
             onPress={() => router.push(`/loan/${item.id}`)}
           />
         )}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { paddingBottom: Math.max(insets.bottom, 16) + 120 }]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -142,11 +142,11 @@ export default function DashboardScreen() {
 
       {/* FAB */}
       <TouchableOpacity
-        style={styles.fab}
-        onPress={() => router.push('/add-loan')}
+        style={[styles.fab, { bottom: Math.max(insets.bottom, 16) + 100 }]}
         activeOpacity={0.8}
+        onPress={() => router.push('/add-loan')}
       >
-        <MaterialIcons name="add" size={28} color={Colors.textInverse} />
+        <Feather name="plus" size={32} color="#FFFFFF" />
       </TouchableOpacity>
     </View>
   );
@@ -167,100 +167,169 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: FontSize.md,
     color: Colors.textSecondary,
+    fontWeight: FontWeight.semibold,
   },
   list: {
-    paddingBottom: 100,
+    paddingBottom: 0, // Handled dynamically in component
   },
-  summaryRow: {
+  walletContainer: {
+    paddingTop: Spacing.sm,
+  },
+  walletCard: {
+    marginHorizontal: Spacing.md,
+    marginBottom: Spacing.xl,
+    padding: Spacing.xl,
+    borderRadius: Radius.xl,
+    backgroundColor: Colors.bgCard,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 10,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  walletGlow: {
+    position: 'absolute',
+    top: -50,
+    right: -50,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: Colors.primary,
+    opacity: 0.15,
+  },
+  walletTopRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  walletLabel: {
+    color: Colors.textMuted,
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.bold,
+    letterSpacing: 1.5,
+  },
+  walletAmountWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+  },
+  walletAmount: {
+    fontSize: 48,
+    fontWeight: FontWeight.extrabold,
+    color: Colors.textPrimary,
+    letterSpacing: -1,
+  },
+  walletBottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  walletStat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
     paddingHorizontal: Spacing.md,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.md,
-    gap: Spacing.sm,
+    paddingVertical: 6,
+    borderRadius: Radius.full,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    gap: 6,
+  },
+  walletStatValue: {
+    color: Colors.textPrimary,
+    fontWeight: FontWeight.bold,
+    fontSize: FontSize.md,
+  },
+  walletStatLabel: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.semibold,
   },
   filterScroll: {
     paddingHorizontal: Spacing.md,
-    paddingBottom: Spacing.md,
+    paddingBottom: Spacing.lg,
     gap: Spacing.sm,
   },
   filterChip: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: 10,
     borderRadius: Radius.full,
-    backgroundColor: Colors.bgCard2,
+    backgroundColor: Colors.bgInput,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(255,255,255,0.05)',
   },
   filterChipActive: {
     backgroundColor: Colors.primaryAlpha,
     borderColor: Colors.primary,
   },
   filterText: {
-    color: Colors.textSecondary,
+    color: Colors.textMuted,
     fontSize: FontSize.sm,
-    fontWeight: FontWeight.medium,
+    fontWeight: FontWeight.bold,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   filterTextActive: {
     color: Colors.primaryLight,
-    fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.extrabold,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginHorizontal: Spacing.md,
-    marginTop: Spacing.md,
     marginBottom: Spacing.sm,
   },
   sectionTitle: {
-    fontSize: FontSize.lg,
-    fontWeight: FontWeight.bold,
+    fontSize: FontSize.xl,
+    fontWeight: FontWeight.extrabold,
     color: Colors.textPrimary,
-  },
-  sectionCount: {
-    fontSize: FontSize.sm,
-    color: Colors.textMuted,
+    letterSpacing: 0.5,
   },
   emptyWrap: {
     alignItems: 'center',
     padding: Spacing.xl,
-    marginTop: Spacing.xxl,
+    marginTop: Spacing.md,
   },
   emptyIconWrap: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: Colors.primaryAlpha,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: Colors.bgInput,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    marginBottom: Spacing.xl,
   },
   emptyTitle: {
-    fontSize: FontSize.xxl,
-    fontWeight: FontWeight.bold,
+    fontSize: FontSize.xl,
+    fontWeight: FontWeight.extrabold,
     color: Colors.textPrimary,
     marginBottom: Spacing.sm,
   },
   emptySubtitle: {
-    fontSize: FontSize.md,
+    fontSize: FontSize.sm,
     color: Colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
+    paddingHorizontal: Spacing.lg,
   },
   fab: {
     position: 'absolute',
-    bottom: 24,
+    // bottom handled dynamically via useSafeAreaInsets inline
     right: 24,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 10,
   },
 });

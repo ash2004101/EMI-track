@@ -105,15 +105,17 @@ function reducer(state: LoanState, action: Action): LoanState {
 }
 
 // ─── INITIAL STATE ────────────────────────────────────────────────────────────
+const DEFAULT_SETTINGS: NotificationSettings = {
+  dayBeforeMorning: '09:00',
+  dayBeforeAfternoon: '14:00',
+  dueDateMorning: '09:00',
+  dueDateEvening: '18:00',
+};
+
 const initialState: LoanState = {
   loans: [],
   payments: {},
-  notificationSettings: {
-    dayBeforeMorning: '09:00',
-    dayBeforeAfternoon: '16:00',
-    dueDateMorning: '09:00',
-    dueDateEvening: '17:00',
-  },
+  notificationSettings: DEFAULT_SETTINGS,
   loading: true,
 };
 

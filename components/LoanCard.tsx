@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Loan } from '../types';
 import { Colors, FontSize, FontWeight, Radius, Spacing, LoanTypeColors, LoanTypeIcons } from '../constants/theme';
+import AnimatedTouchable from './AnimatedTouchable';
 
 interface LoanCardProps {
   loan: Loan;
@@ -48,147 +49,161 @@ export default function LoanCard({ loan, paymentsCount, onPress }: LoanCardProps
   const statusStyle = statusColors[loan.status];
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
-      <View style={[styles.accentGradient, { backgroundColor: typeColor }]} />
-      
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <View style={[styles.iconWrap, { backgroundColor: typeColor + '22' }]}>
-            <MaterialIcons name={iconName as any} size={22} color={typeColor} />
-          </View>
-          <View style={styles.titleWrap}>
-            <Text style={styles.loanName} numberOfLines={1}>{loan.name}</Text>
-            <Text style={[styles.loanType, { color: typeColor }]}>{loan.type} Loan</Text>
-          </View>
-          <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg, borderColor: statusStyle.text + '44' }]}>
-            <Text style={[styles.statusText, { color: statusStyle.text }]}>{loan.status}</Text>
-          </View>
-        </View>
-
-        <View style={styles.metricsRow}>
-          <View style={styles.metricItem}>
-            <Text style={styles.label}>EMI Amount</Text>
-            <Text style={styles.amount} adjustsFontSizeToFit numberOfLines={1}>₹{amountStr}</Text>
-          </View>
-          <View style={styles.metricDivider} />
-          <View style={styles.metricItem}>
-            <Text style={styles.label}>Next Due</Text>
-            <Text style={styles.dueDate}>{formatDate(loan.dueDate)}</Text>
-            <Text style={[styles.daysLabel, { color: dueLabel.color }]}>{dueLabel.text}</Text>
-          </View>
-        </View>
-
-        {paymentsCount !== undefined && loan.totalDues > 0 && (
-          <View style={styles.progressContainer}>
-            <View style={styles.progressHeader}>
-              <Text style={styles.progressText}>Payments</Text>
-              <Text style={styles.progressValue}>{paymentsCount} / {loan.totalDues}</Text>
+    <AnimatedTouchable onPress={onPress} style={styles.cardWrapper}>
+      <View style={[styles.glowBorder, { backgroundColor: typeColor }]} />
+      <View style={styles.card}>
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <View style={styles.titleWrap}>
+              <Text style={styles.loanName} numberOfLines={1}>{loan.name}</Text>
+              <Text style={[styles.loanType, { color: typeColor }]}>{loan.type} Loan</Text>
             </View>
-            <View style={styles.progressBarBg}>
-              <View 
-                style={[
-                  styles.progressBarFill, 
-                  { 
-                    backgroundColor: typeColor, 
-                    width: `${Math.min((paymentsCount / loan.totalDues) * 100, 100)}%` 
-                  }
-                ]} 
-              />
+            <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg, borderColor: statusStyle.text + '33' }]}>
+              <Text style={[styles.statusText, { color: statusStyle.text }]}>{loan.status}</Text>
             </View>
           </View>
-        )}
+
+          <View style={styles.metricsContainer}>
+            <View style={styles.metricItem}>
+              <Text style={styles.label}>Monthly EMI</Text>
+              <Text style={styles.amount} adjustsFontSizeToFit numberOfLines={1}>₹{amountStr}</Text>
+            </View>
+            <View style={styles.metricItemRight}>
+              <Text style={styles.label}>Next Due</Text>
+              <Text style={styles.dueDate}>{formatDate(loan.dueDate)}</Text>
+              <Text style={[styles.daysLabel, { color: dueLabel.color }]}>{dueLabel.text}</Text>
+            </View>
+          </View>
+
+          {paymentsCount !== undefined && loan.totalDues > 0 && (
+            <View style={styles.progressContainer}>
+              <View style={styles.progressHeader}>
+                <Text style={styles.progressText}>Payments Processed</Text>
+                <Text style={styles.progressValue}>{paymentsCount} / {loan.totalDues}</Text>
+              </View>
+              <View style={styles.progressBarBg}>
+                <View 
+                  style={[
+                    styles.progressBarFill, 
+                    { 
+                      backgroundColor: typeColor, 
+                      width: `${Math.min((paymentsCount / loan.totalDues) * 100, 100)}%` 
+                    }
+                  ]} 
+                />
+              </View>
+            </View>
+          )}
+        </View>
       </View>
-    </TouchableOpacity>
+    </AnimatedTouchable>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: Colors.bgCard,
-    borderRadius: Radius.lg,
+  cardWrapper: {
     marginHorizontal: Spacing.md,
-    marginVertical: 6,
-    flexDirection: 'row',
-    overflow: 'hidden',
+    marginVertical: 8,
+    borderRadius: Radius.xl,
+    backgroundColor: Colors.bgCard,
     borderWidth: 1,
     borderColor: Colors.border,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 8,
+    overflow: 'hidden',
   },
-  accentGradient: {
-    width: 6,
+  glowBorder: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+    opacity: 0.8,
+  },
+  card: {
+    backgroundColor: 'rgba(255,255,255,0.01)',
   },
   content: {
-    flex: 1,
-    padding: 12,
+    padding: Spacing.lg,
+    paddingLeft: Spacing.lg + 4,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: 10,
+    gap: Spacing.md,
+    marginBottom: Spacing.md,
   },
   iconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: Radius.md,
+    width: 48,
+    height: 48,
+    borderRadius: Radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
   },
   titleWrap: {
     flex: 1,
   },
   loanName: {
-    fontSize: FontSize.md,
-    fontWeight: FontWeight.bold,
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.extrabold,
     color: Colors.textPrimary,
+    letterSpacing: 0.2,
   },
   loanType: {
     fontSize: FontSize.xs,
-    fontWeight: FontWeight.semibold,
-    marginTop: 2,
+    fontWeight: FontWeight.bold,
+    marginTop: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   statusBadge: {
     paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
+    paddingVertical: 6,
     borderRadius: Radius.full,
     borderWidth: 1,
   },
   statusText: {
     fontSize: FontSize.xs,
     fontWeight: FontWeight.bold,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  metricsRow: {
+  metricsContainer: {
     flexDirection: 'row',
-    backgroundColor: Colors.bgInput,
-    borderRadius: Radius.sm,
-    padding: 10,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    borderRadius: Radius.lg,
+    padding: Spacing.md,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.03)',
   },
   metricItem: {
     flex: 1,
   },
-  metricDivider: {
-    width: 1,
-    height: '100%',
-    backgroundColor: Colors.border,
-    marginHorizontal: Spacing.md,
+  metricItemRight: {
+    flex: 1,
+    alignItems: 'flex-end',
   },
   label: {
     fontSize: FontSize.xs,
-    color: Colors.textSecondary,
+    color: Colors.textMuted,
     marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    fontWeight: FontWeight.semibold,
   },
   amount: {
-    fontSize: FontSize.md,
+    fontSize: FontSize.xl,
     fontWeight: FontWeight.extrabold,
     color: Colors.textPrimary,
   },
   dueDate: {
-    fontSize: FontSize.sm,
+    fontSize: FontSize.md,
     fontWeight: FontWeight.bold,
     color: Colors.textPrimary,
   },
@@ -198,26 +213,28 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   progressContainer: {
-    marginTop: Spacing.md,
+    marginTop: Spacing.lg,
   },
   progressHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   progressText: {
     fontSize: FontSize.xs,
-    fontWeight: FontWeight.medium,
+    fontWeight: FontWeight.bold,
     color: Colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   progressValue: {
     fontSize: FontSize.xs,
-    fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.extrabold,
     color: Colors.textPrimary,
   },
   progressBarBg: {
-    height: 6,
-    backgroundColor: Colors.bgInput,
+    height: 8,
+    backgroundColor: 'rgba(0,0,0,0.3)',
     borderRadius: Radius.full,
     overflow: 'hidden',
   },

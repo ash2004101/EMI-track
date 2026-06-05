@@ -24,10 +24,10 @@ export interface Payment {
 }
 
 export interface NotificationSettings {
-  dayBeforeMorning: string;    // "HH:MM" format, default "09:00"
-  dayBeforeAfternoon: string;  // "HH:MM" format, default "16:00"
-  dueDateMorning: string;      // "HH:MM" format, default "09:00"
-  dueDateEvening: string;      // "HH:MM" format, default "17:00"
+  dayBeforeMorning: string; // '09:00'
+  dayBeforeAfternoon: string; // '14:00'
+  dueDateMorning: string; // '09:00'
+  dueDateEvening: string; // '18:00'
 }
 
 export type NotificationSuffix = 'd1_morning' | 'd1_afternoon' | 'd0_morning' | 'd0_evening';

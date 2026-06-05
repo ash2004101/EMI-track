@@ -65,57 +65,6 @@ export default function AnalyticsScreen() {
           <Text style={styles.cardValue} numberOfLines={1} adjustsFontSizeToFit>{formatCurrency(totalPaid)}</Text>
         </View>
       </View>
-
-      {/* Distribution Pie Chart */}
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Loan Distribution</Text>
-        {pieData.length > 0 ? (
-          <PieChart
-            data={pieData}
-            width={screenWidth - Spacing.md * 4}
-            height={220}
-            chartConfig={chartConfig}
-            accessor={"population"}
-            backgroundColor={"transparent"}
-            paddingLeft={"15"}
-            center={[10, 0]}
-            absolute
-          />
-        ) : (
-          <Text style={styles.emptyText}>No data to display. Add your first loan.</Text>
-        )}
-      </View>
-
-      {/* Monthly Outflow Bar Chart */}
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Top 5 EMI Outflows</Text>
-        {loans.length > 0 ? (
-          <BarChart
-            data={{
-              labels: loans.slice(0, 5).map(l => l.name.substring(0, 5) + '..'),
-              datasets: [
-                {
-                  data: loans.slice(0, 5).map(l => l.emiAmount),
-                },
-              ],
-            }}
-            width={screenWidth - Spacing.md * 4}
-            height={220}
-            yAxisLabel="₹"
-            yAxisSuffix=""
-            chartConfig={{
-              ...chartConfig,
-              color: (opacity = 1) => `rgba(0, 255, 163, ${opacity})`,
-            }}
-            style={{
-              marginVertical: 8,
-              borderRadius: 16,
-            }}
-          />
-        ) : (
-          <Text style={styles.emptyText}>No loans added yet.</Text>
-        )}
-      </View>
     </ScrollView>
   );
 }

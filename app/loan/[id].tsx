@@ -113,9 +113,6 @@ export default function LoanDetailScreen() {
       {/* Hero Card */}
       <View style={[styles.heroCard, { borderTopColor: typeColor }]}>
         <View style={styles.heroTop}>
-          <View style={[styles.heroIcon, { backgroundColor: typeColor + '22' }]}>
-            <MaterialIcons name={iconName as any} size={32} color={typeColor} />
-          </View>
           <View style={styles.heroInfo}>
             <Text style={styles.heroName}>{loan.name}</Text>
             <Text style={[styles.heroType, { color: typeColor }]}>{loan.type} Loan</Text>

@@ -23,7 +23,6 @@ export async function requestNotificationPermissions(): Promise<boolean> {
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#6C63FF',
-      sound: 'default',
     });
   }
 
@@ -34,7 +33,8 @@ export async function requestNotificationPermissions(): Promise<boolean> {
 export function setupNotificationHandler() {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
-      shouldShowAlert: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
       shouldPlaySound: true,
       shouldSetBadge: true,
     }),
@@ -104,10 +104,11 @@ export async function scheduleNotificationsForLoan(
         content: {
           title: '💰 EMI Reminder',
           body: n.body,
-          sound: 'default',
+          sound: true,
           data: { loanId: id, type: n.suffix },
         },
         trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
           channelId: 'emi-reminders',
           date: triggerDate.getTime(),
         },

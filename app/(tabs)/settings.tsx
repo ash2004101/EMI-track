@@ -7,20 +7,19 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Modal,
   Platform,
+  Switch,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLoanContext } from '../../context/LoanContext';
+import AnimatedTouchable from '../../components/AnimatedTouchable';
 import { Colors, FontSize, FontWeight, Radius, Spacing } from '../../constants/theme';
 import { NotificationSettings } from '../../types';
 import { getScheduledNotificationsCount } from '../../services/notifications';
 
-const TIME_OPTIONS = [
-  '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
-  '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
-  '18:00', '19:00', '20:00', '21:00',
-];
-
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
 function formatTime12h(time: string): string {
   const [h, m] = time.split(':').map(Number);
   const ampm = h >= 12 ? 'PM' : 'AM';
@@ -28,76 +27,162 @@ function formatTime12h(time: string): string {
   return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
 }
 
-interface TimePickerRowProps {
+const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+
+// ─── CUSTOM TIME PICKER MODAL ────────────────────────────────────────────────
+interface CustomTimePickerModalProps {
+  visible: boolean;
+  value: string; // HH:mm in 24hr format
+  onClose: () => void;
+  onSave: (val: string) => void;
+  title: string;
+}
+
+function CustomTimePickerModal({ visible, value, onClose, onSave, title }: CustomTimePickerModalProps) {
+  // Parse initial 24h string into internal state
+  const [h, m] = value.split(':').map(Number);
+  const [selectedHour, setSelectedHour] = useState(String(h % 12 || 12).padStart(2, '0'));
+  const [selectedMinute, setSelectedMinute] = useState(String(m).padStart(2, '0'));
+  const [selectedAmPm, setSelectedAmPm] = useState(h >= 12 ? 'PM' : 'AM');
+
+  useEffect(() => {
+    if (visible) {
+      const [initH, initM] = value.split(':').map(Number);
+      setSelectedHour(String(initH % 12 || 12).padStart(2, '0'));
+      setSelectedMinute(String(initM).padStart(2, '0'));
+      setSelectedAmPm(initH >= 12 ? 'PM' : 'AM');
+    }
+  }, [visible, value]);
+
+  const handleSave = () => {
+    let hour24 = parseInt(selectedHour, 10);
+    if (selectedAmPm === 'PM' && hour24 !== 12) hour24 += 12;
+    if (selectedAmPm === 'AM' && hour24 === 12) hour24 = 0;
+    
+    const final24 = `${String(hour24).padStart(2, '0')}:${selectedMinute}`;
+    onSave(final24);
+  };
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <View style={styles.modalOverlay}>
+        <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={onClose} />
+        
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>{title}</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+              <MaterialIcons name="close" size={24} color={Colors.textMuted} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.pickerContainer}>
+            {/* Hours Column */}
+            <View style={styles.pickerColumn}>
+              <Text style={styles.pickerColumnLabel}>Hour</Text>
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.pickerScroll}>
+                {HOURS.map((hr) => (
+                  <TouchableOpacity
+                    key={hr}
+                    style={[styles.pickerItem, selectedHour === hr && styles.pickerItemSelected]}
+                    onPress={() => setSelectedHour(hr)}
+                  >
+                    <Text style={[styles.pickerItemText, selectedHour === hr && styles.pickerItemTextSelected]}>
+                      {hr}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
+            {/* Minutes Column */}
+            <View style={styles.pickerColumn}>
+              <Text style={styles.pickerColumnLabel}>Minute</Text>
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.pickerScroll}>
+                {MINUTES.map((min) => (
+                  <TouchableOpacity
+                    key={min}
+                    style={[styles.pickerItem, selectedMinute === min && styles.pickerItemSelected]}
+                    onPress={() => setSelectedMinute(min)}
+                  >
+                    <Text style={[styles.pickerItemText, selectedMinute === min && styles.pickerItemTextSelected]}>
+                      {min}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
+            {/* AM/PM Column */}
+            <View style={styles.pickerColumn}>
+              <Text style={styles.pickerColumnLabel}>AM/PM</Text>
+              <View style={styles.amPmContainer}>
+                {['AM', 'PM'].map((ampm) => (
+                  <TouchableOpacity
+                    key={ampm}
+                    style={[styles.pickerItem, { marginVertical: 8 }, selectedAmPm === ampm && styles.pickerItemSelected]}
+                    onPress={() => setSelectedAmPm(ampm)}
+                  >
+                    <Text style={[styles.pickerItemText, selectedAmPm === ampm && styles.pickerItemTextSelected]}>
+                      {ampm}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </View>
+
+          <TouchableOpacity style={styles.modalSaveBtn} onPress={handleSave} activeOpacity={0.8}>
+            <Text style={styles.modalSaveBtnText}>Confirm Time</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+// ─── TIME ROW COMPONENT ──────────────────────────────────────────────────────
+interface TimeRowProps {
   label: string;
   subtitle: string;
   icon: string;
   value: string;
-  onChange: (val: string) => void;
+  onPress: () => void;
 }
 
-function TimePickerRow({ label, subtitle, icon, value, onChange }: TimePickerRowProps) {
-  const [expanded, setExpanded] = useState(false);
-
+function TimeRow({ label, subtitle, icon, value, onPress }: TimeRowProps) {
   return (
     <View style={styles.timeCard}>
-      <TouchableOpacity
-        style={styles.timeHeader}
-        onPress={() => setExpanded(!expanded)}
-        activeOpacity={0.8}
-      >
-        <View style={[styles.timeIconWrap, { backgroundColor: Colors.primaryAlpha }]}>
-          <MaterialIcons name={icon as any} size={20} color={Colors.primary} />
-        </View>
-        <View style={styles.timeLabelWrap}>
-          <Text style={styles.timeLabel}>{label}</Text>
-          <Text style={styles.timeSubtitle}>{subtitle}</Text>
-        </View>
-        <View style={styles.timeValueWrap}>
-          <Text style={styles.timeValue}>{formatTime12h(value)}</Text>
-          <MaterialIcons
-            name={expanded ? 'expand-less' : 'expand-more'}
-            size={20}
-            color={Colors.textMuted}
-          />
-        </View>
+      <View style={[styles.timeIconWrap, { backgroundColor: Colors.primaryAlpha }]}>
+        <MaterialIcons name={icon as any} size={20} color={Colors.primary} />
+      </View>
+      
+      <View style={styles.timeLabelWrap}>
+        <Text style={styles.timeLabel} numberOfLines={1}>{label}</Text>
+        <Text style={styles.timeSubtitle} numberOfLines={1}>{subtitle}</Text>
+      </View>
+      
+      <TouchableOpacity style={styles.timeValueWrap} onPress={onPress} activeOpacity={0.7}>
+        <Text style={styles.timeValue}>{formatTime12h(value)}</Text>
       </TouchableOpacity>
-
-      {expanded && (
-        <View style={styles.timeOptions}>
-          {TIME_OPTIONS.map((t) => (
-            <TouchableOpacity
-              key={t}
-              style={[
-                styles.timeOption,
-                t === value && styles.timeOptionSelected,
-              ]}
-              onPress={() => {
-                onChange(t);
-                setExpanded(false);
-              }}
-            >
-              <Text
-                style={[
-                  styles.timeOptionText,
-                  t === value && styles.timeOptionTextSelected,
-                ]}
-              >
-                {formatTime12h(t)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
     </View>
   );
 }
 
 export default function SettingsScreen() {
+  const insets = useSafeAreaInsets();
   const { notificationSettings, updateNotificationSettings, loans } = useLoanContext();
   const [local, setLocal] = useState<NotificationSettings>(notificationSettings);
   const [scheduledCount, setScheduledCount] = useState(0);
   const [saving, setSaving] = useState(false);
+
+  // View State (main menu vs sub-menus)
+  const [activeView, setActiveView] = useState<'main' | 'preDue' | 'dueDate'>('main');
+
+  // Picker State
+  const [pickerVisible, setPickerVisible] = useState(false);
+  const [activePickerKey, setActivePickerKey] = useState<keyof NotificationSettings | null>(null);
 
   useEffect(() => {
     setLocal(notificationSettings);
@@ -131,101 +216,168 @@ export default function SettingsScreen() {
   const handleTestNotification = async () => {
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: '🔔 Test Notification',
-        body: 'This is what your EMI reminders will look like!',
-        sound: 'default',
+        title: '🔔 Test Reminder',
+        body: 'This is what your EMI alerts will look like!',
+        sound: true,
       },
       trigger: {
         seconds: 3,
         channelId: 'emi-reminders',
       },
     });
-    Alert.alert('Testing', 'A test notification will appear in 3 seconds! Minimize the app to see the heads-up banner.');
+    Alert.alert('Testing', `A test notification will appear in 3 seconds! Minimize the app to see it.`);
   };
 
+  const openPicker = (key: keyof NotificationSettings) => {
+    setActivePickerKey(key);
+    setPickerVisible(true);
+  };
+
+  const handlePickerSave = (newTime: string) => {
+    if (activePickerKey) {
+      setLocal(prev => ({ ...prev, [activePickerKey]: newTime }));
+    }
+    setPickerVisible(false);
+  };
+
+  const getPickerTitle = () => {
+    switch (activePickerKey) {
+      case 'dayBeforeMorning': return 'Morning Reminder';
+      case 'dayBeforeAfternoon': return 'Afternoon Reminder';
+      case 'dueDateMorning': return 'Morning Alert';
+      case 'dueDateEvening': return 'Evening Alert';
+      default: return 'Set Time';
+    }
+  };
+
+  // ─── RENDER MAIN MENU ──────────────────────────────────────────────
+  if (activeView === 'main') {
+    return (
+      <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 16) + 80 }]}>
+        <View style={styles.content}>
+          <View style={styles.statusBanner}>
+            <MaterialIcons name="notifications-active" size={24} color={Colors.primary} />
+            <View style={styles.statusText}>
+              <Text style={styles.statusTitle}>Notification Engine Active</Text>
+              <Text style={styles.statusSub}>{scheduledCount} reminders queued securely on-device.</Text>
+            </View>
+          </View>
+
+          <Text style={styles.sectionLabel}>CONFIGURATION</Text>
+          <View style={styles.sectionContainer}>
+            <AnimatedTouchable style={styles.menuRow} onPress={() => setActiveView('preDue')}>
+              <View style={[styles.timeIconWrap, { backgroundColor: Colors.warningAlpha }]}>
+                <MaterialIcons name="event-note" size={20} color={Colors.warning} />
+              </View>
+              <View style={styles.timeLabelWrap}>
+                <Text style={styles.timeLabel}>Pre-Due Alerts</Text>
+                <Text style={styles.timeSubtitle}>{formatTime12h(local.dayBeforeMorning)} & {formatTime12h(local.dayBeforeAfternoon)}</Text>
+              </View>
+              <MaterialIcons name="chevron-right" size={24} color={Colors.textMuted} />
+            </AnimatedTouchable>
+            <View style={styles.divider} />
+            <AnimatedTouchable style={styles.menuRow} onPress={() => setActiveView('dueDate')}>
+              <View style={[styles.timeIconWrap, { backgroundColor: Colors.dangerAlpha }]}>
+                <MaterialIcons name="alarm" size={20} color={Colors.danger} />
+              </View>
+              <View style={styles.timeLabelWrap}>
+                <Text style={styles.timeLabel}>Due Date Alerts</Text>
+                <Text style={styles.timeSubtitle}>{formatTime12h(local.dueDateMorning)} & {formatTime12h(local.dueDateEvening)}</Text>
+              </View>
+              <MaterialIcons name="chevron-right" size={24} color={Colors.textMuted} />
+            </AnimatedTouchable>
+          </View>
+        </View>
+
+        {/* Fixed Bottom Section (No Scrolling Needed!) */}
+        <View style={styles.bottomFixed}>
+          <AnimatedTouchable
+            style={[styles.saveBtn, !hasChanges && styles.saveBtnDisabled]}
+            onPress={handleSave}
+            disabled={!hasChanges || saving}
+          >
+            <MaterialIcons name="done-all" size={20} color={Colors.textInverse} />
+            <Text style={styles.saveBtnText}>
+              {saving ? 'Synchronizing...' : 'Save & Reschedule'}
+            </Text>
+          </AnimatedTouchable>
+
+          <AnimatedTouchable style={styles.testBtn} onPress={handleTestNotification}>
+            <MaterialIcons name="vibration" size={20} color={Colors.primary} />
+            <Text style={styles.testBtnText}>Send Test Notification</Text>
+          </AnimatedTouchable>
+        </View>
+      </View>
+    );
+  }
+
+  // ─── RENDER SUB-VIEWS (Pre-Due & Due Date) ─────────────────────────
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Status Banner */}
-      <View style={styles.statusBanner}>
-        <MaterialIcons name="notifications-active" size={22} color={Colors.primary} />
-        <View style={styles.statusText}>
-          <Text style={styles.statusTitle}>Notification Status</Text>
-          <Text style={styles.statusSub}>{scheduledCount} notifications scheduled</Text>
+    <View style={styles.container}>
+      <View style={styles.content}>
+        <AnimatedTouchable style={styles.backBtn} onPress={() => setActiveView('main')}>
+          <MaterialIcons name="arrow-back" size={24} color={Colors.primary} />
+          <Text style={styles.backBtnText}>Back to Settings</Text>
+        </AnimatedTouchable>
+
+        <Text style={styles.subViewTitle}>
+          {activeView === 'preDue' ? 'Pre-Due Alerts' : 'Due Date Alerts'}
+        </Text>
+        <Text style={styles.subViewDesc}>
+          {activeView === 'preDue' 
+            ? 'Set the times you want to receive heads-up reminders the day before an EMI is due.'
+            : 'Set the exact times you want to be alerted on the actual day your EMI is due.'}
+        </Text>
+
+        <View style={styles.sectionContainer}>
+          {activeView === 'preDue' ? (
+            <>
+              <TimeRow
+                label="Morning Check-in"
+                subtitle="Day before at"
+                icon="wb-sunny"
+                value={local.dayBeforeMorning}
+                onPress={() => openPicker('dayBeforeMorning')}
+              />
+              <View style={styles.divider} />
+              <TimeRow
+                label="Afternoon Reminder"
+                subtitle="Day before at"
+                icon="wb-cloudy"
+                value={local.dayBeforeAfternoon}
+                onPress={() => openPicker('dayBeforeAfternoon')}
+              />
+            </>
+          ) : (
+            <>
+              <TimeRow
+                label="Morning Wake-up Alert"
+                subtitle="Due date at"
+                icon="alarm"
+                value={local.dueDateMorning}
+                onPress={() => openPicker('dueDateMorning')}
+              />
+              <View style={styles.divider} />
+              <TimeRow
+                label="Evening Pending Alert"
+                subtitle="If unpaid, due date at"
+                icon="alarm-on"
+                value={local.dueDateEvening}
+                onPress={() => openPicker('dueDateEvening')}
+              />
+            </>
+          )}
         </View>
       </View>
 
-      {/* Day Before Section */}
-      <Text style={styles.sectionLabel}>📅 Day Before Due Date</Text>
-      <Text style={styles.sectionDesc}>
-        Receive two reminders the day before your EMI is due.
-      </Text>
-      <TimePickerRow
-        label="Morning Reminder"
-        subtitle="Day before at"
-        icon="wb-sunny"
-        value={local.dayBeforeMorning}
-        onChange={(v) => setLocal((s) => ({ ...s, dayBeforeMorning: v }))}
+      <CustomTimePickerModal
+        visible={pickerVisible}
+        title={getPickerTitle()}
+        value={activePickerKey ? (local[activePickerKey] as string) : '09:00'}
+        onClose={() => setPickerVisible(false)}
+        onSave={handlePickerSave}
       />
-      <TimePickerRow
-        label="Afternoon Reminder"
-        subtitle="Day before at"
-        icon="wb-cloudy"
-        value={local.dayBeforeAfternoon}
-        onChange={(v) => setLocal((s) => ({ ...s, dayBeforeAfternoon: v }))}
-      />
-
-      {/* Due Date Section */}
-      <Text style={[styles.sectionLabel, { marginTop: Spacing.lg }]}>🔔 On Due Date</Text>
-      <Text style={styles.sectionDesc}>
-        Get alerted on the day of your EMI.
-      </Text>
-      <TimePickerRow
-        label="Morning Alert"
-        subtitle="Due date at"
-        icon="alarm"
-        value={local.dueDateMorning}
-        onChange={(v) => setLocal((s) => ({ ...s, dueDateMorning: v }))}
-      />
-      <TimePickerRow
-        label="Evening Pending Alert"
-        subtitle="If unpaid, due date at"
-        icon="alarm-on"
-        value={local.dueDateEvening}
-        onChange={(v) => setLocal((s) => ({ ...s, dueDateEvening: v }))}
-      />
-
-      {/* Info Box */}
-      <View style={styles.infoBox}>
-        <MaterialIcons name="info-outline" size={16} color={Colors.primary} />
-        <Text style={styles.infoText}>
-          Changes will reschedule notifications for all active loans automatically.
-          Paid loans are not rescheduled.
-        </Text>
-      </View>
-
-      {/* Save Button */}
-      <TouchableOpacity
-        style={[styles.saveBtn, !hasChanges && styles.saveBtnDisabled]}
-        onPress={handleSave}
-        disabled={!hasChanges || saving}
-        activeOpacity={0.8}
-      >
-        <MaterialIcons name="save" size={20} color={Colors.textInverse} />
-        <Text style={styles.saveBtnText}>
-          {saving ? 'Rescheduling...' : 'Save & Reschedule'}
-        </Text>
-      </TouchableOpacity>
-
-      {/* Test Button */}
-      <TouchableOpacity
-        style={styles.testBtn}
-        onPress={handleTestNotification}
-        activeOpacity={0.8}
-      >
-        <MaterialIcons name="notifications-active" size={20} color={Colors.primary} />
-        <Text style={styles.testBtnText}>Send Test Notification</Text>
-      </TouchableOpacity>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -233,61 +385,76 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.bg,
+    justifyContent: 'space-between', // Pushes bottomFixed to the very bottom
   },
   content: {
-    padding: Spacing.md,
-    paddingBottom: Spacing.xxl,
+    padding: Spacing.lg,
+  },
+  bottomFixed: {
+    padding: Spacing.lg,
+    paddingTop: 0,
+    gap: Spacing.md,
   },
   statusBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.primaryAlpha,
-    borderRadius: Radius.lg,
-    padding: Spacing.md,
-    marginBottom: Spacing.lg,
-    gap: Spacing.sm,
+    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    borderRadius: Radius.xl,
+    padding: Spacing.lg,
+    marginBottom: Spacing.xl,
+    gap: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.primary + '44',
+    borderColor: 'rgba(99, 102, 241, 0.2)',
   },
   statusText: { flex: 1 },
   statusTitle: {
     fontSize: FontSize.md,
-    fontWeight: FontWeight.semibold,
+    fontWeight: FontWeight.bold,
     color: Colors.textPrimary,
+    letterSpacing: 0.5,
   },
   statusSub: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    marginTop: 2,
+    marginTop: 4,
+    lineHeight: 20,
   },
   sectionLabel: {
-    fontSize: FontSize.lg,
-    fontWeight: FontWeight.bold,
-    color: Colors.textPrimary,
-    marginBottom: Spacing.xs,
-  },
-  sectionDesc: {
-    fontSize: FontSize.sm,
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.extrabold,
     color: Colors.textMuted,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
+    letterSpacing: 1.5,
+    marginLeft: 4,
   },
-  timeCard: {
+  sectionContainer: {
     backgroundColor: Colors.bgCard,
     borderRadius: Radius.lg,
-    marginBottom: Spacing.sm,
     borderWidth: 1,
     borderColor: Colors.border,
+    marginBottom: Spacing.lg,
     overflow: 'hidden',
   },
-  timeHeader: {
+  menuRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    gap: Spacing.md,
+  },
+  timeCard: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.md,
     gap: Spacing.sm,
   },
+  divider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginLeft: 60,
+  },
   timeIconWrap: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     borderRadius: Radius.md,
     alignItems: 'center',
     justifyContent: 'center',
@@ -295,7 +462,7 @@ const styles = StyleSheet.create({
   timeLabelWrap: { flex: 1 },
   timeLabel: {
     fontSize: FontSize.md,
-    fontWeight: FontWeight.semibold,
+    fontWeight: FontWeight.bold,
     color: Colors.textPrimary,
   },
   timeSubtitle: {
@@ -303,55 +470,84 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     marginTop: 2,
   },
+  saveBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.xl,
+    padding: Spacing.md,
+    gap: Spacing.sm,
+  },
+  saveBtnDisabled: {
+    opacity: 0.5,
+  },
+  saveBtnText: {
+    fontSize: FontSize.md,
+    fontWeight: FontWeight.bold,
+    color: Colors.textInverse,
+    letterSpacing: 0.5,
+  },
+  testBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    borderRadius: Radius.xl,
+    padding: Spacing.md,
+    gap: Spacing.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(99, 102, 241, 0.2)',
+  },
+  testBtnText: {
+    fontSize: FontSize.md,
+    fontWeight: FontWeight.bold,
+    color: Colors.primaryLight,
+  },
+  backBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginBottom: Spacing.lg,
+    paddingVertical: Spacing.xs,
+  },
+  backBtnText: {
+    fontSize: FontSize.md,
+    fontWeight: 'bold',
+    color: Colors.primary,
+  },
+  subViewTitle: {
+    fontSize: FontSize.xxl,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
+  },
+  subViewDesc: {
+    fontSize: FontSize.sm,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xl,
+    lineHeight: 20,
+  },
   timeValueWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
   timeValue: {
-    fontSize: FontSize.md,
-    fontWeight: FontWeight.bold,
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.extrabold,
     color: Colors.primary,
-  },
-  timeOptions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: Spacing.md,
-    paddingTop: 0,
-    gap: Spacing.xs,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  timeOption: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 6,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.bgInput,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  timeOptionSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  timeOptionText: {
-    fontSize: FontSize.sm,
-    color: Colors.textSecondary,
-  },
-  timeOptionTextSelected: {
-    color: '#fff',
-    fontWeight: FontWeight.semibold,
   },
   infoBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: Colors.primaryAlpha,
-    borderRadius: Radius.md,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: Radius.lg,
     padding: Spacing.md,
-    marginTop: Spacing.lg,
+    marginTop: Spacing.xl,
     gap: Spacing.sm,
     borderWidth: 1,
-    borderColor: Colors.primary + '33',
+    borderColor: 'rgba(255,255,255,0.05)',
   },
   infoText: {
     flex: 1,
@@ -359,39 +555,97 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: 20,
   },
-  saveBtn: {
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalBackdrop: {
+    position: 'absolute',
+    left: 0, right: 0, top: 0, bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  modalContent: {
+    backgroundColor: Colors.bgCard,
+    borderTopLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl,
+    padding: Spacing.lg,
+    paddingBottom: Platform.OS === 'ios' ? 40 : Spacing.xl,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  modalHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: Spacing.lg,
+  },
+  modalTitle: {
+    fontSize: FontSize.xl,
+    fontWeight: FontWeight.bold,
+    color: Colors.textPrimary,
+  },
+  closeBtn: {
+    padding: Spacing.xs,
+  },
+  pickerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    height: 240,
+    backgroundColor: Colors.bgInput,
+    borderRadius: Radius.lg,
+    padding: Spacing.sm,
+    marginBottom: Spacing.xl,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  pickerColumn: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  pickerColumnLabel: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.semibold,
+    color: Colors.textMuted,
+    marginBottom: Spacing.sm,
+  },
+  pickerScroll: {
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  pickerItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: Radius.md,
+    marginVertical: 4,
+  },
+  pickerItemSelected: {
+    backgroundColor: Colors.primaryAlpha,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  pickerItemText: {
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.medium,
+    color: Colors.textSecondary,
+  },
+  pickerItemTextSelected: {
+    color: Colors.primary,
+    fontWeight: FontWeight.bold,
+  },
+  amPmContainer: {
+    flex: 1,
     justifyContent: 'center',
+  },
+  modalSaveBtn: {
     backgroundColor: Colors.primary,
     borderRadius: Radius.lg,
-    padding: Spacing.md,
-    marginTop: Spacing.lg,
-    gap: Spacing.sm,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
   },
-  saveBtnDisabled: {
-    opacity: 0.4,
-  },
-  saveBtnText: {
+  modalSaveBtnText: {
     fontSize: FontSize.md,
     fontWeight: FontWeight.bold,
     color: Colors.textInverse,
-  },
-  testBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.primaryAlpha,
-    borderRadius: Radius.lg,
-    padding: Spacing.md,
-    marginTop: Spacing.md,
-    gap: Spacing.sm,
-    borderWidth: 1,
-    borderColor: Colors.primary + '44',
-  },
-  testBtnText: {
-    fontSize: FontSize.md,
-    fontWeight: FontWeight.bold,
-    color: Colors.primary,
   },
 });
