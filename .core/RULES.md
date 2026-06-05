@@ -14,8 +14,8 @@
 - **MANDATORY RECOMPILATION:** If native node modules are updated, you **MUST** run `npx expo run:android` in the terminal to trigger a Gradle rebuild and push a fresh APK to the connected device. If you skip this step, the app will crash with `NoClassDefFoundError`.
 
 ## 3. NOTIFICATION & ALARM RULES
-- **ALARM REJECTION:** True "Alarm Clock" behavior (where the phone continuously rings loudly until swiped away) is NOT natively supported by `expo-notifications` on Expo Go or standard Expo builds. Setting `AndroidAudioUsage.ALARM` only plays a short sound.
-- **RESTRICTION:** Do NOT attempt to build an alarm feature using boolean toggles and standard notification channels. We explicitly removed this feature. If a true alarm is required, you must embed a custom `.wav` resource file natively into `android/app/src/main/res/raw/`.
+- **STRICTLY NO ALARMS:** The user has explicitly forbidden any continuous "Alarm Clock" features. 
+- **ONLY STANDARD NOTIFICATIONS:** Do NOT attempt to build an alarm feature. All reminders must remain as standard, quiet push notifications. Never add alarm toggles back to the UI.
 
 ## 4. METRO BUNDLER RULES
 - **WINDOWS CACHE BUGS:** On Windows, the Metro bundler often chokes on deeply nested dynamically generated Gradle caches (`Error: EMFILE` or `ENOENT`). 
