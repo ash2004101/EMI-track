@@ -23,3 +23,7 @@
 
 ## 5. VERSION CONTROL
 - **GIT IS TRUTH:** This project relies on Git for exact line-by-line history tracking. After completing a significant feature or bug fix, you should run `git add .` and `git commit -m "..."` to preserve the state.
+
+## 6. AUTO-DOCUMENTATION (CRITICAL)
+- **SILENT UPDATES:** Every time you complete a task, fix a major bug, or add a new file, you MUST automatically update `.core/SESSION_HISTORY.md` and `.core/ARCHITECTURE.md` to reflect your changes. 
+- Do NOT wait for the user to ask you to update the documentation. You must do this silently and automatically before finishing your work.
