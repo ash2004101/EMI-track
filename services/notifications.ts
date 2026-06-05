@@ -105,6 +105,7 @@ export async function scheduleNotificationsForLoan(
           title: '💰 EMI Reminder',
           body: n.body,
           sound: true,
+          sticky: true,
           data: { loanId: id, type: n.suffix },
         },
         trigger: {
@@ -153,4 +154,8 @@ export async function rescheduleAllNotifications(
 export async function getScheduledNotificationsCount(): Promise<number> {
   const all = await Notifications.getAllScheduledNotificationsAsync();
   return all.length;
+}
+
+export async function dismissAllDeliveredNotifications(): Promise<void> {
+  await Notifications.dismissAllNotificationsAsync();
 }

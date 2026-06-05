@@ -34,6 +34,7 @@ This document records the major structural changes, feature implementations, bug
   3. `d0_morning` (Due date morning)
   4. `d0_evening` (Due date evening warning)
 - Built logic into `LoanContext.tsx` so that calling `markAsPaid()` automatically shifts the due date by 1 month and immediately reschedules the 4 push notifications.
+- **Sticky Notifications:** Upgraded the scheduling payload to include `sticky: true`. This pins the reminders to the Android notification drawer permanently so they cannot be swiped away. Added `dismissAllDeliveredNotifications()` to the `markAsPaid` flow so the pinned alerts are automatically cleared only when the user pays the EMI.
 
 ---
 

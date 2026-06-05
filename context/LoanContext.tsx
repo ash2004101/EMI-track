@@ -21,6 +21,7 @@ import {
   cancelNotificationsForLoan,
   rescheduleNotificationsForLoan,
   rescheduleAllNotifications,
+  dismissAllDeliveredNotifications,
 } from '../services/notifications';
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
@@ -174,6 +175,9 @@ export function LoanProvider({ children }: { children: React.ReactNode }) {
   const markAsPaid = useCallback(async (loanId: string) => {
     const loan = state.loans.find((l) => l.id === loanId);
     if (!loan) return;
+
+    // Clear sticky notifications from the device tray
+    await dismissAllDeliveredNotifications();
 
     // Save payment record
     const now = new Date();
