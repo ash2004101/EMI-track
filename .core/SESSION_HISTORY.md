@@ -4,6 +4,12 @@ This document records the major structural changes, feature implementations, bug
 
 ---
 
+## 🕒 VERSION CONTROL (GIT)
+- **Line-by-Line Tracking:** As of today, the project is officially tracked via **Git version control**. 
+- While this `.Core` documentation tracks high-level architectural decisions and bug fixes, **Git** is the absolute source of truth for exact line-by-line code changes. If a future agent or developer needs to "undo" a broken feature or see exactly what lines of code were modified on a specific date, they should use `git log` and `git diff`.
+
+---
+
 ## 🏗️ 1. ARCHITECTURAL FOUNDATION
 - **Framework & Routing:** Initialized using Expo Router (SDK 56). Established the `(tabs)` structure for Dashboard, Analytics, and Settings, alongside hidden modal routes (`add-loan`, `loan/[id]`).
 - **Styling Paradigm:** Enforced Vanilla React Native `StyleSheet`. Explicitly rejected TailwindCSS to maintain high-performance native rendering. Created `constants/theme.ts` as the single source of truth for all `Colors`, `Spacing`, and `Radius` tokens.
