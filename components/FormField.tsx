@@ -21,6 +21,7 @@ interface FormFieldProps {
   icon?: string;
   required?: boolean;
   editable?: boolean;
+  onPress?: () => void;
 }
 
 export default function FormField({
@@ -34,6 +35,7 @@ export default function FormField({
   icon,
   required = false,
   editable = true,
+  onPress,
 }: FormFieldProps) {
   const [focused, setFocused] = useState(false);
 
@@ -43,12 +45,14 @@ export default function FormField({
         {label}
         {required && <Text style={styles.required}> *</Text>}
       </Text>
-      <View
+      <TouchableOpacity
+        activeOpacity={onPress ? 0.7 : 1}
+        onPress={onPress}
         style={[
           styles.inputRow,
           focused && styles.inputFocused,
           !!error && styles.inputError,
-          !editable && styles.inputDisabled,
+          (!editable && !onPress) && styles.inputDisabled,
         ]}
       >
         {icon && (
@@ -59,21 +63,23 @@ export default function FormField({
             style={styles.icon}
           />
         )}
-        <TextInput
-          style={[styles.input, multiline && styles.multiline]}
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          placeholderTextColor={Colors.textMuted}
-          keyboardType={keyboardType}
-          multiline={multiline}
-          numberOfLines={multiline ? 3 : 1}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          editable={editable}
-          selectionColor={Colors.primary}
-        />
-      </View>
+        <View style={styles.inputContainer} pointerEvents={onPress ? "none" : "auto"}>
+          <TextInput
+            style={[styles.input, multiline && styles.multiline]}
+            value={value}
+            onChangeText={onChangeText}
+            placeholder={placeholder}
+            placeholderTextColor={Colors.textMuted}
+            keyboardType={keyboardType}
+            multiline={multiline}
+            numberOfLines={multiline ? 3 : 1}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            editable={onPress ? false : editable}
+            selectionColor={Colors.primary}
+          />
+        </View>
+      </TouchableOpacity>
       {error ? (
         <View style={styles.errorRow}>
           <MaterialIcons name="error-outline" size={12} color={Colors.danger} />
@@ -120,8 +126,10 @@ const styles = StyleSheet.create({
   icon: {
     marginRight: Spacing.sm,
   },
-  input: {
+  inputContainer: {
     flex: 1,
+  },
+  input: {
     fontSize: FontSize.md,
     color: Colors.textPrimary,
     paddingVertical: Platform.OS === 'ios' ? Spacing.sm : Spacing.xs,

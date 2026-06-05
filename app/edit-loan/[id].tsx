@@ -11,6 +11,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLoanContext } from '../../context/LoanContext';
 import FormField from '../../components/FormField';
+import CustomDatePickerModal from '../../components/CustomDatePickerModal';
 import {
   Colors,
   FontSize,
@@ -45,7 +46,8 @@ export default function EditLoanScreen() {
   const [type, setType] = useState('');
   const [emiAmount, setEmiAmount] = useState('');
   const [totalDues, setTotalDues] = useState('');
-  const [dueDateInput, setDueDateInput] = useState('');
+  const [rawDueDate, setRawDueDate] = useState('');
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -56,7 +58,7 @@ export default function EditLoanScreen() {
       setType(loan.type);
       setEmiAmount(String(loan.emiAmount));
       setTotalDues(String(loan.totalDues || ''));
-      setDueDateInput(toDisplayDate(loan.dueDate));
+      setRawDueDate(loan.dueDate);
       setNotes(loan.notes || '');
     }
   }, [loan]);
@@ -85,10 +87,10 @@ export default function EditLoanScreen() {
     } else if (isNaN(Number(totalDues)) || Number(totalDues) <= 0 || !Number.isInteger(Number(totalDues))) {
       errs.totalDues = 'Enter a valid number of months';
     }
-    if (!dueDateInput.trim()) {
+    if (!rawDueDate) {
       errs.dueDate = 'Due date is required';
     } else {
-      const parsed = parseDateInput(dueDateInput);
+      const parsed = parseDateInput(rawDueDate);
       if (!parsed) errs.dueDate = 'Use format DD/MM/YYYY';
     }
     setErrors(errs);
@@ -99,7 +101,7 @@ export default function EditLoanScreen() {
     if (!validate()) return;
     setSaving(true);
     try {
-      const parsedDate = parseDateInput(dueDateInput);
+      const parsedDate = parseDateInput(rawDueDate);
       
       const updated: Loan = {
         ...loan,
@@ -172,11 +174,12 @@ export default function EditLoanScreen() {
       />
       <FormField
         label="Due Date"
-        value={dueDateInput}
-        onChangeText={setDueDateInput}
-        placeholder="DD/MM/YYYY"
+        value={toDisplayDate(rawDueDate)}
+        onChangeText={() => {}}
+        placeholder="Select Date"
         icon="event"
         required
+        onPress={() => setDatePickerVisible(true)}
         error={errors.dueDate}
       />
       <FormField
@@ -205,6 +208,17 @@ export default function EditLoanScreen() {
         <MaterialIcons name={saving ? 'hourglass-empty' : 'save'} size={22} color="#fff" />
         <Text style={styles.saveBtnText}>{saving ? 'Saving...' : 'Save Changes'}</Text>
       </TouchableOpacity>
+
+      <CustomDatePickerModal
+        visible={datePickerVisible}
+        value={rawDueDate}
+        onClose={() => setDatePickerVisible(false)}
+        onSave={(val) => {
+          setRawDueDate(val);
+          setDatePickerVisible(false);
+        }}
+        title="Select Due Date"
+      />
     </ScrollView>
   );
 }

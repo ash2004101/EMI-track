@@ -24,6 +24,7 @@ This document records the major structural changes, feature implementations, bug
 
 ### **Settings & Form Controls**
 - Built an entirely custom, native-feeling `<CustomTimePickerModal>` in `settings.tsx` to handle 24-hour time selection (bypassing the need to install external messy picker libraries).
+- Built an entirely custom `<CustomDatePickerModal>` for the Due Date fields in "Add Loan" and "Edit Loan" screens, preventing the need to install native DateTime libraries that require rebuilding the APK.
 - Locked the Save buttons to the bottom of the Settings and Add Loan screens using Flexbox (`justifyContent: 'space-between'`) to eliminate unnecessary scrolling.
 
 ### **Push Notification Engine**
