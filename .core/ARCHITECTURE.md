@@ -29,6 +29,7 @@ D:\EMI\
 │   └── images/                # App icons, splash screens, favicon
 ├── components/                # Reusable UI Components
 │   ├── AnimatedTouchable.tsx  # Physics-based touch wrapper
+│   ├── CustomDatePickerModal.tsx # Native-feeling 3-wheel date selector
 │   ├── FormField.tsx          # Reusable text input
 │   ├── LoanCard.tsx           # Main EMI list card
 │   ├── PaymentHistoryItem.tsx # Individual payment record row
@@ -121,22 +122,31 @@ D:\EMI\
 
 ### 3. COMPONENTS DIRECTORY (REUSABLE UI)
 
-#### 📂 `components/LoanCard.tsx`
-- **Lines 14-20:** `getDaysUntilDue()` math block. Calculates days remaining.
-- **Lines 28-35:** `getDueDateLabel()` returns text ("Due Tomorrow") and badge color based on days.
-- **Lines 51-103:** Card UI Layout (Top row: Name/Type/Badge, Middle row: Amount/Date, Bottom row: Progress bar).
+**Purpose:** Pure, stateless presentational components.
 
-#### 📂 `components/AnimatedTouchable.tsx`
-- Wraps elements to provide an Apple-style 60fps scale-down bounce effect on press using `react-native-reanimated`.
+1. **`FormField.tsx`**
+   - Standardized input field across the entire app.
+   - Handles text input, numeric input, multi-line notes, validation errors, and `onPress` overlays (for triggering Modals instead of typing).
+   - Strict theming applied to focused and unfocused states.
 
-#### 📂 `components/FormField.tsx`
-- **Lines 41-83:** `<TextInput>` wrapper. Renders Label, Icon, actual Input, and an Error text row below it if validation fails.
+2. **`CustomDatePickerModal.tsx`**
+   - A highly custom, native-feeling scroll-wheel modal.
+   - Provides 3 vertical scroll columns (Day, Month, Year) to easily pick dates without relying on heavy third-party iOS/Android native packages.
+   - Currently used heavily in the Due Date fields of Add Loan and Edit Loan screens.
 
-#### 📂 `components/PaymentHistoryItem.tsx`
-- Renders a single green-checkmarked row showing completed payment history (Month, Date, Amount).
+3. **`AnimatedTouchable.tsx`**
+   - Wrapper around `Pressable` using `react-native-reanimated`.
+   - Adds a subtle scale-down spring physics effect when users tap buttons, making the app feel alive.
 
-#### 📂 `components/SummaryCard.tsx`
-- Renders the small square statistics cards used heavily on the Analytics page.
+4. **`LoanCard.tsx`**
+   - Renders a loan on the dashboard (`app/(tabs)/index.tsx`).
+   - Calculates progress bars and formats currency visually.
+
+5. **`SummaryCard.tsx`**
+   - Renders the small metric blocks on the dashboard (e.g., "Active Loans", "Monthly EMI").
+
+6. **`PaymentHistoryItem.tsx`**
+   - Renders a single payment log inside the Loan Details screen (`app/loan/[id].tsx`).
 
 ---
 
