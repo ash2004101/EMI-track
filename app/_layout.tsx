@@ -6,6 +6,8 @@ import { setupNotificationHandler, requestNotificationPermissions } from '../ser
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { Colors } from '../constants/theme';
+
 export default function RootLayout() {
   useEffect(() => {
     setupNotificationHandler();
@@ -15,14 +17,14 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <LoanProvider>
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
         <Stack
           screenOptions={{
-            headerStyle: { backgroundColor: '#0F0F1A' },
-            headerTintColor: '#F0EFFB',
-            headerTitleStyle: { fontWeight: '700', fontSize: 18 },
+            headerStyle: { backgroundColor: Colors.bgCard },
+            headerTintColor: Colors.textPrimary,
+            headerTitleStyle: { fontWeight: 'bold' },
             headerShadowVisible: false,
-            contentStyle: { backgroundColor: '#0F0F1A' },
+            contentStyle: { backgroundColor: Colors.bg },
             animation: 'slide_from_right',
           }}
         >
@@ -33,7 +35,7 @@ export default function RootLayout() {
               title: 'Add New Loan',
               presentation: 'modal',
               animation: 'slide_from_bottom',
-              headerStyle: { backgroundColor: '#1A1A2E' },
+              headerStyle: { backgroundColor: Colors.bgCard },
             }}
           />
           <Stack.Screen

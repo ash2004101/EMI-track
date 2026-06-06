@@ -14,10 +14,10 @@ export default function TabsLayout() {
           bottom: Math.max(insets.bottom, 16) + 16, // Dynamically adapts to Swipe Gestures vs Navigation Buttons
           left: 24,
           right: 24,
-          backgroundColor: 'rgba(15, 15, 19, 0.95)',
+          backgroundColor: Colors.bgModal,
           borderTopWidth: 0,
           borderWidth: 1,
-          borderColor: 'rgba(255, 255, 255, 0.08)',
+          borderColor: Colors.border,
           borderRadius: 999,
           height: 64,
           paddingBottom: 0,
@@ -32,7 +32,7 @@ export default function TabsLayout() {
           alignItems: 'center',
           paddingTop: 14, // Pushes icons back to exact vertical center
         },
-        tabBarActiveTintColor: '#fff',
+        tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textMuted,
         tabBarShowLabel: false,
         headerStyle: { backgroundColor: Colors.bg },

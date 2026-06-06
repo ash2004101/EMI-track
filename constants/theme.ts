@@ -1,47 +1,47 @@
 // Design tokens for EMI Tracker
 
 export const Colors = {
-  // Deep Obsidian Backgrounds
-  bg: '#000000',
-  bgCard: '#111115',
-  bgCard2: '#18181E',
-  bgInput: '#15151A',
-  bgModal: '#0F0F13',
+  // Clean White Backgrounds
+  bg: '#FFFFFF',
+  bgCard: '#F8FAFC',
+  bgCard2: '#F1F5F9',
+  bgInput: '#F1F5F9',
+  bgModal: '#FFFFFF',
 
-  // Vibrant Neon Accents
-  primary: '#6366F1', // Electric Indigo
-  primaryLight: '#818CF8',
-  primaryDark: '#4F46E5',
-  primaryAlpha: 'rgba(99, 102, 241, 0.15)', // Glass glow
+  // Vibrant Blue Accents
+  primary: '#2563EB', // Blue for buttons
+  primaryLight: '#60A5FA',
+  primaryDark: '#1D4ED8',
+  primaryAlpha: 'rgba(37, 99, 235, 0.15)',
 
-  secondary: '#06B6D4', // Cyan
-  secondaryAlpha: 'rgba(6, 182, 212, 0.15)',
+  secondary: '#0EA5E9',
+  secondaryAlpha: 'rgba(14, 165, 233, 0.15)',
 
   // Status
-  success: '#10B981', // Emerald
+  success: '#10B981',
   successAlpha: 'rgba(16, 185, 129, 0.15)',
-  warning: '#F59E0B', // Amber
+  warning: '#F59E0B',
   warningAlpha: 'rgba(245, 158, 11, 0.15)',
-  danger: '#EF4444', // Rose
+  danger: '#EF4444',
   dangerAlpha: 'rgba(239, 68, 68, 0.15)',
 
-  // Crisp Text
-  textPrimary: '#FFFFFF',
-  textSecondary: '#A1A1AA',
-  textMuted: '#71717A',
-  textInverse: '#000000',
+  // Dark Text for Light Theme
+  textPrimary: '#0F172A',
+  textSecondary: '#475569',
+  textMuted: '#64748B',
+  textInverse: '#FFFFFF',
 
-  // Minimalist Borders
-  border: 'rgba(255, 255, 255, 0.08)',
-  borderStrong: 'rgba(255, 255, 255, 0.15)',
+  // Subtle Borders
+  border: 'rgba(0, 0, 0, 0.08)',
+  borderStrong: 'rgba(0, 0, 0, 0.15)',
 
-  // Categorical Neons
-  loanHome: '#06B6D4',
-  loanBike: '#10B981',
-  loanCar: '#8B5CF6',
-  loanPersonal: '#F59E0B',
-  loanEducation: '#EC4899',
-  loanOther: '#71717A',
+  // Categorical Colors (Slightly darkened for light mode contrast)
+  loanHome: '#0284C7',
+  loanBike: '#059669',
+  loanCar: '#7C3AED',
+  loanPersonal: '#D97706',
+  loanEducation: '#DB2777',
+  loanOther: '#475569',
 };
 
 export const Spacing = {

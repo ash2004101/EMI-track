@@ -189,7 +189,7 @@ export default function AddLoanScreen() {
         disabled={saving}
         activeOpacity={0.8}
       >
-        <MaterialIcons name={saving ? 'hourglass-empty' : 'add-circle'} size={22} color="#fff" />
+        <MaterialIcons name={saving ? 'hourglass-empty' : 'add-circle'} size={22} color={Colors.textInverse} />
         <Text style={styles.saveBtnText}>{saving ? 'Adding Loan...' : 'Add Loan'}</Text>
       </TouchableOpacity>
 
@@ -210,7 +210,7 @@ export default function AddLoanScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1A1A2E',
+    backgroundColor: Colors.bg,
   },
   content: {
     padding: Spacing.md,
@@ -260,6 +260,6 @@ const styles = StyleSheet.create({
   saveBtnText: {
     fontSize: FontSize.lg,
     fontWeight: FontWeight.bold,
-    color: '#fff',
+    color: Colors.textInverse,
   },
 });
